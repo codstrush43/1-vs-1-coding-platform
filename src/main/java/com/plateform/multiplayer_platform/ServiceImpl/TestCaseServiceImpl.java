@@ -9,6 +9,9 @@ import com.plateform.multiplayer_platform.Entity.TestCase;
 import com.plateform.multiplayer_platform.Repository.ProblemRepository;
 import com.plateform.multiplayer_platform.Repository.TestCaseRepository;
 import com.plateform.multiplayer_platform.Service.TestCaseService;
+
+import java.util.List;
+
 import org.modelmapper.ModelMapper;
 
 @Service
@@ -40,6 +43,12 @@ public class TestCaseServiceImpl implements TestCaseService {
 
         return testCaseRepository.save(testCase);
 
+    }
+
+    @Override 
+    public List<TestCase> findByProblemId(Long problemId)
+    {
+        return testCaseRepository.findByProblemId(problemId);
     }
 
 }

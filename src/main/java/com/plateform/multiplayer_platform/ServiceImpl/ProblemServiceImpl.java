@@ -23,4 +23,10 @@ public class ProblemServiceImpl implements ProblemService {
         Problem problem = modelMapper.map(problemDto, Problem.class);
         return problemRepository.save(problem);
     }
+
+    @Override 
+    public Problem findById(Long problemId)
+    {
+        return  problemRepository.findById(problemId).orElse(null);
+    }
 }
