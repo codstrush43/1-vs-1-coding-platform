@@ -3,7 +3,6 @@ package com.plateform.multiplayer_platform.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.plateform.multiplayer_platform.DTOs.SubmissionExecutionResult;
 import com.plateform.multiplayer_platform.DTOs.SubmissionRequest;
 import com.plateform.multiplayer_platform.Entity.Match;
 import com.plateform.multiplayer_platform.Entity.Problem;
@@ -13,7 +12,6 @@ import com.plateform.multiplayer_platform.Repository.ProblemRepository;
 import com.plateform.multiplayer_platform.Repository.SubmissionRepository;
 import com.plateform.multiplayer_platform.Service.SubmissionService;
 import com.plateform.multiplayer_platform.Enum.SubmissionStatus;
-import com.plateform.multiplayer_platform.Service.CodeExecutionService;
 
 @Service
 public class SubmissionServiceImpl implements SubmissionService{
@@ -26,14 +24,11 @@ public class SubmissionServiceImpl implements SubmissionService{
     @Autowired
     private ProblemRepository problemRepository;
 
-    @Autowired 
-    private CodeExecutionService codeExecutionService;
-
     @Override
     public Submission saveSubmission(SubmissionRequest submissionRequest) {
 
-        Match match = matchRepository.findById(submissionRequest.getMatchId())
-                .orElseThrow(() -> new RuntimeException("Match not found with id: " + submissionRequest.getMatchId()));
+        // Match match = matchRepository.findById(submissionRequest.getMatchId())
+        //         .orElseThrow(() -> new RuntimeException("Match not found with id: " + submissionRequest.getMatchId()));
         Problem problem = problemRepository.findById(submissionRequest.getProblemId()).orElseThrow(
             () -> new RuntimeException("Problem not found with id :"+ submissionRequest.getProblemId())
         );
@@ -41,12 +36,18 @@ public class SubmissionServiceImpl implements SubmissionService{
         // SubmissionExecutionResult executionResult = codeExecutionService.execute(problem, submissionRequest.getCode(), submissionRequest.getLanguage());
 
         Submission submission = new Submission();
-        submission.setMatch(match);
+        // submission.setMatch(match);
         submission.setProblem(problem);
         submission.setLanguage(submissionRequest.getLanguage());
         submission.setCode(submissionRequest.getCode());
         submission.setStatus(SubmissionStatus.PENDING);
 
+        return submissionRepository.save(submission);
+    }
+
+    @Override 
+    public Submission saveUpdatedStatusSubmission(Submission submission)
+    {
         return submissionRepository.save(submission);
     }
 }

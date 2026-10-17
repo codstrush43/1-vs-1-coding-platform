@@ -5,4 +5,6 @@ import com.plateform.multiplayer_platform.Entity.Submission;
 
 public interface SubmissionService {
     Submission saveSubmission(SubmissionRequest submissionRequest);
+
+    Submission saveUpdatedStatusSubmission(Submission submission);
 }

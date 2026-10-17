@@ -38,11 +38,12 @@ public class SubmissionController {
     public ResponseEntity<?> execute(@RequestBody SubmissionRequest submissionRequest)
     {   
         try{
-            Problem problem=problemService.findById(submissionRequest.getProblemId());
-            return ResponseEntity.ok(codeExecutionService.execute(problem,submissionRequest.getCode(),""));
+             System.out.println("su kare che laa");
+            Submission submission=submissionService.saveSubmission(submissionRequest);
+            System.out.println("su kare che laa");
+            return ResponseEntity.ok(codeExecutionService.execute(submission));
         }
         catch(Exception e){}
-
         return ResponseEntity.ok("error");
     }
 
