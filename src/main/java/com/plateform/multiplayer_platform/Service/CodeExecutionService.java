@@ -1,7 +1,8 @@
 package com.plateform.multiplayer_platform.Service;
 
 import com.plateform.multiplayer_platform.Entity.Submission;
+import com.plateform.multiplayer_platform.Enum.SubmissionStatus;
 
 public interface CodeExecutionService {
-    Submission execute(Submission submission) throws Exception;
+    SubmissionStatus execute(Submission submission) throws Exception;
 }  

@@ -4,14 +4,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.plateform.multiplayer_platform.DTOs.SubmissionRequest;
-import com.plateform.multiplayer_platform.Entity.Match;
 import com.plateform.multiplayer_platform.Entity.Problem;
 import com.plateform.multiplayer_platform.Entity.Submission;
+import com.plateform.multiplayer_platform.Enum.SubmissionStatus;
 import com.plateform.multiplayer_platform.Repository.MatchRepository;
 import com.plateform.multiplayer_platform.Repository.ProblemRepository;
 import com.plateform.multiplayer_platform.Repository.SubmissionRepository;
+import com.plateform.multiplayer_platform.Service.CodeExecutionService;
 import com.plateform.multiplayer_platform.Service.SubmissionService;
-import com.plateform.multiplayer_platform.Enum.SubmissionStatus;
+
 
 @Service
 public class SubmissionServiceImpl implements SubmissionService{
@@ -23,6 +24,9 @@ public class SubmissionServiceImpl implements SubmissionService{
 
     @Autowired
     private ProblemRepository problemRepository;
+
+    @Autowired 
+    private CodeExecutionService codeExecutionService;
 
     @Override
     public Submission saveSubmission(SubmissionRequest submissionRequest) {
@@ -41,13 +45,20 @@ public class SubmissionServiceImpl implements SubmissionService{
         submission.setLanguage(submissionRequest.getLanguage());
         submission.setCode(submissionRequest.getCode());
         submission.setStatus(SubmissionStatus.PENDING);
+        submissionRepository.save(submission);
 
-        return submissionRepository.save(submission);
+        return execute(submission);
     }
 
-    @Override 
-    public Submission saveUpdatedStatusSubmission(Submission submission)
-    {
-        return submissionRepository.save(submission);
-    }
+        @Override
+        public Submission execute(Submission submission) {
+            try {
+                SubmissionStatus status = codeExecutionService.execute(submission);
+                submission.setStatus(status);
+                return submissionRepository.save(submission);
+            } catch (Exception e) {
+                submission.setStatus(SubmissionStatus.INTERNAL_ERROR);
+                return submissionRepository.save(submission);
+            }
+        }
 }

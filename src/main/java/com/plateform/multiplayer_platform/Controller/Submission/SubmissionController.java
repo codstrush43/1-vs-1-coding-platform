@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.plateform.multiplayer_platform.DTOs.SubmissionRequest;
-import com.plateform.multiplayer_platform.Entity.Problem;
 import com.plateform.multiplayer_platform.Entity.Submission;
 import com.plateform.multiplayer_platform.Service.CodeExecutionService;
 import com.plateform.multiplayer_platform.Service.ProblemService;
@@ -21,30 +20,19 @@ public class SubmissionController {
     
     @Autowired
     private SubmissionService submissionService;
+    
+        @PostMapping("/submit")
+        public ResponseEntity<?> execute(@RequestBody SubmissionRequest submissionRequest) {
 
-    @Autowired 
-    private CodeExecutionService codeExecutionService;
+            try {
+                Submission submission =submissionService.saveSubmission(submissionRequest);
+                return ResponseEntity.ok(submission);
 
-    @Autowired 
-    private ProblemService problemService;
-
-    @PostMapping("/submit")
-    public ResponseEntity<?> saveSubmission(@RequestBody SubmissionRequest submissionRequest)
-    {
-        return ResponseEntity.ok(submissionService.saveSubmission(submissionRequest));
-    }
-
-    @GetMapping("/execute")
-    public ResponseEntity<?> execute(@RequestBody SubmissionRequest submissionRequest)
-    {   
-        try{
-             System.out.println("su kare che laa");
-            Submission submission=submissionService.saveSubmission(submissionRequest);
-            System.out.println("su kare che laa");
-            return ResponseEntity.ok(codeExecutionService.execute(submission));
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.internalServerError()
+                        .body("Failed to process submission");
+            }
         }
-        catch(Exception e){}
-        return ResponseEntity.ok("error");
-    }
 
 }

@@ -24,76 +24,116 @@ public class CodeExecutionServiceImpl implements CodeExecutionService{
 
     @Autowired 
     private TestCaseService testCaseService;
-
-    @Autowired 
-    private SubmissionService submissionService;
     
-    @Override 
-    public Submission execute(Submission submission) throws Exception{
+    private String compilingContainerName="";
+    private String runningContainerName="";
+    private String activeContainerName="";
+    private String fileName="";
 
-        Path tempDir = Files.createTempDirectory("cpp-executor");
-        Path sourceFile=tempDir.resolve("main.cpp");
-        String activeContainerName=null;
+    private String imageName="";
+
+    private String compilingCommand="";
+    private String runningCommand="";
+
+    @Override 
+    public SubmissionStatus execute(Submission submission) throws Exception{
+
+        Path tempDir = Files.createTempDirectory("executor");
+
+        switch(submission.getLanguage())
+        {
+            case("cpp") : compilingContainerName="cpp-compiler"+UUID.randomUUID();
+                          runningContainerName="cpp-runner"+UUID.randomUUID();
+                          imageName="cpp-executor";
+                          fileName="main.cpp";
+                          compilingCommand="g++ /app/main.cpp -o /app/main";
+                          runningCommand="/app/main < /app/input.txt";
+                          break;
+
+            case("java") :  compilingContainerName="java-compiler"+UUID.randomUUID();
+                            runningContainerName="java-runner"+UUID.randomUUID();
+                            imageName="java-executor";
+                            fileName="Main.java";
+                            compilingCommand = "javac -d /app /app/Main.java";
+                            runningCommand = "java -cp /app Main < /app/input.txt";
+                            break;
+
+            case("python") : compilingContainerName="python-compiler"+UUID.randomUUID();
+                            runningContainerName="python-runner"+UUID.randomUUID();
+                            imageName="python-executor";
+                            fileName="main.py";
+                            compilingCommand =null;
+                            runningCommand = "python3 /app/main.py < /app/input.txt";
+                            break;
+            
+            case("javascript") :compilingContainerName = "js-compiler" + UUID.randomUUID();
+                                runningContainerName = "js-runner" + UUID.randomUUID();
+                                imageName = "java-script-executor";
+                                fileName = "main.js";
+                                compilingCommand = null;
+                                runningCommand = "node /app/main.js < /app/input.txt";
+                                break;
+            default : throw new Exception("select appropriate language!");
+        }
+
+        Path sourceFile=tempDir.resolve(fileName);
+        activeContainerName=null;
         try{
         Files.writeString(sourceFile,submission.getCode());
         
         List<TestCase> testCases=testCaseService.findByProblemId(submission.getProblem().getId());
-
-        String compilingContainerName="cpp-compiler"+UUID.randomUUID();
         activeContainerName=compilingContainerName;
-        
-        ProcessBuilder compileProcessBuilder = new ProcessBuilder(
-            "docker",
-            "run",
-            "--name",compilingContainerName,
-            "--rm",
-            "-v",
-            tempDir.toAbsolutePath() + ":/app",
-            "cpp-executor",
-            "bash",
-            "-c",
-            "g++ /app/main.cpp -o /app/main"
-        );
-
-        Process compileProcess = compileProcessBuilder.start();
-
-        Boolean compileExitCode = compileProcess.waitFor(10,TimeUnit.SECONDS);
-        if(compileExitCode)
+        if(compilingCommand!=null)
         {
-            activeContainerName=null;
-        }
-        if(!compileExitCode)
-        {
-            try{
-                Process killProcess = new ProcessBuilder(
-                    "docker","kill",compilingContainerName
-                ).start();
-                if(!killProcess.waitFor(3,TimeUnit.SECONDS))
-                {
-                    killProcess.destroyForcibly();
+            ProcessBuilder compileProcessBuilder = new ProcessBuilder(
+                "docker",
+                "run",
+                "--name",compilingContainerName,
+                "--rm",
+                "-v",
+                tempDir.toAbsolutePath() + ":/app",
+                imageName,
+                "bash",
+                "-c",
+                compilingCommand
+            );
+
+            Process compileProcess = compileProcessBuilder.start();
+
+            Boolean compileExitCode = compileProcess.waitFor(10,TimeUnit.SECONDS);
+            if(compileExitCode)
+            {
+                activeContainerName=null;
+            }
+            if(!compileExitCode)
+            {
+                try{
+                    Process killProcess = new ProcessBuilder(
+                        "docker","kill",compilingContainerName
+                    ).start();
+                    if(!killProcess.waitFor(3,TimeUnit.SECONDS))
+                    {
+                        killProcess.destroyForcibly();
+                    }
                 }
+                finally{
+                    compileProcess.destroyForcibly();
+                }
+                compileProcess.waitFor();
+                return SubmissionStatus.COMPILATION_TIME_LIMIT_EXCEEDED;
             }
-            finally{
-                compileProcess.destroyForcibly();
-            }
-            compileProcess.waitFor();
-            submission.setStatus(SubmissionStatus.COMPILATION_TIME_LIMIT_EXCEEDED);
-            return submissionService.saveUpdatedStatusSubmission(submission);
-        }
 
-        if(compileProcess.exitValue()!=0)
-        {
-            String error=new String(compileProcess.getErrorStream().readAllBytes());
-            submission.setStatus(SubmissionStatus.COMPILATION_ERROR);
-            return submissionService.saveUpdatedStatusSubmission(submission);
+            if(compileProcess.exitValue()!=0)
+            {
+                String error=new String(compileProcess.getErrorStream().readAllBytes());
+                return SubmissionStatus.COMPILATION_ERROR;
+            }
         }
         
         for(TestCase testCase : testCases)
         {
             Path inputFile = tempDir.resolve("input.txt");
             Files.writeString(inputFile,testCase.getInput());
-            
-            String runningContainerName="cpp-runner"+UUID.randomUUID();
             activeContainerName=runningContainerName;
 
             ProcessBuilder processBuilder=new ProcessBuilder(
@@ -103,16 +143,15 @@ public class CodeExecutionServiceImpl implements CodeExecutionService{
                 "--rm",
                 "-v",
                 tempDir.toAbsolutePath()+":/app",
-                "cpp-executor",
+                imageName,
                 "bash",
                 "-c",
-                "/app/main < /app/input.txt"
+                runningCommand
             );
 
             Process process = processBuilder.start();
 
             boolean exitcode=process.waitFor(2,TimeUnit.SECONDS);
- System.out.println("su kare che laa");
             if(!exitcode)
             {
                 try
@@ -129,15 +168,13 @@ public class CodeExecutionServiceImpl implements CodeExecutionService{
                     process.destroyForcibly();
                 }
                 process.waitFor();
-               submission.setStatus(SubmissionStatus.TIME_LIMIT_EXCEEDED);
-                return submissionService.saveUpdatedStatusSubmission(submission);
+                return SubmissionStatus.TIME_LIMIT_EXCEEDED;
             }
             
             if(process.exitValue()!=0)
             {
                 String error = new String(process.getErrorStream().readAllBytes());
-                submission.setStatus(SubmissionStatus.RUNTIME_ERROR);
-            return submissionService.saveUpdatedStatusSubmission(submission);
+            return SubmissionStatus.RUNTIME_ERROR;
             }
 
             String output=new String(process.getInputStream().readAllBytes());
@@ -146,19 +183,16 @@ public class CodeExecutionServiceImpl implements CodeExecutionService{
 
             if(!output.trim().equals(testCase.getExpectedOutput().trim()))
             {
-                submission.setStatus(SubmissionStatus.WRONG_ANSWER);
-            return submissionService.saveUpdatedStatusSubmission(submission);
+                return SubmissionStatus.WRONG_ANSWER;
             }
             activeContainerName=null;
         }
-            submission.setStatus(SubmissionStatus.ACCEPTED);
-            return submissionService.saveUpdatedStatusSubmission(submission);
+            return SubmissionStatus.ACCEPTED;
         }
         catch(Exception e)
         {
             System.out.println(e.getMessage());
-            submission.setStatus(SubmissionStatus.INTERNAL_ERROR);
-            return submissionService.saveUpdatedStatusSubmission(submission);
+            return SubmissionStatus.INTERNAL_ERROR;
         }
         finally{
 
