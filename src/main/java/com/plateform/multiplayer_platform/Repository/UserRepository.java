@@ -8,4 +8,5 @@ import com.plateform.multiplayer_platform.Entity.User;
 
 public interface UserRepository extends JpaRepository<User,Long>{
     Optional<User> findByUsername(String username);
+    Optional<User> findByUserId(long id);
 }

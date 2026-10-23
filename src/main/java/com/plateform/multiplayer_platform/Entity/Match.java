@@ -2,7 +2,11 @@ package com.plateform.multiplayer_platform.Entity;
 
 import java.time.LocalDateTime;
 
+import com.plateform.multiplayer_platform.Enum.MatchStatus;
+
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -34,7 +38,8 @@ public class Match {
     @JoinColumn(name = "player2_id")
     private User player2;
 
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private MatchStatus status;
 
     private LocalDateTime createdAt;
 

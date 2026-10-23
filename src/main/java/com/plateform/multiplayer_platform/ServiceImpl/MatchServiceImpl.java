@@ -3,6 +3,7 @@ package com.plateform.multiplayer_platform.ServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.plateform.multiplayer_platform.Entity.Match;
+import com.plateform.multiplayer_platform.Enum.MatchStatus;
 import com.plateform.multiplayer_platform.Repository.MatchRepository;
 import com.plateform.multiplayer_platform.Service.MatchService;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ public class MatchServiceImpl implements MatchService {
 
     @Override 
     public Match createMatch(Match match) {
+        match.setStatus(MatchStatus.WAITING);
         return matchRepository.save(match);
     }
 

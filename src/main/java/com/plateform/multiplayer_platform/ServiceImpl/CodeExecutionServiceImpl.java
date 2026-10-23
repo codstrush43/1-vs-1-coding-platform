@@ -11,12 +11,10 @@ import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.plateform.multiplayer_platform.Entity.Problem;
 import com.plateform.multiplayer_platform.Entity.Submission;
 import com.plateform.multiplayer_platform.Entity.TestCase;
 import com.plateform.multiplayer_platform.Enum.SubmissionStatus;
 import com.plateform.multiplayer_platform.Service.CodeExecutionService;
-import com.plateform.multiplayer_platform.Service.SubmissionService;
 import com.plateform.multiplayer_platform.Service.TestCaseService;
 
 @Service 
@@ -24,20 +22,18 @@ public class CodeExecutionServiceImpl implements CodeExecutionService{
 
     @Autowired 
     private TestCaseService testCaseService;
-    
-    private String compilingContainerName="";
-    private String runningContainerName="";
-    private String activeContainerName="";
-    private String fileName="";
 
-    private String imageName="";
-
-    private String compilingCommand="";
-    private String runningCommand="";
 
     @Override 
     public SubmissionStatus execute(Submission submission) throws Exception{
-
+            
+        String compilingContainerName="";
+        String runningContainerName="";
+        String activeContainerName="";
+        String fileName="";
+        String imageName="";
+        String compilingCommand="";
+        String runningCommand="";
         Path tempDir = Files.createTempDirectory("executor");
 
         switch(submission.getLanguage())
