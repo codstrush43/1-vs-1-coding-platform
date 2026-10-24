@@ -7,7 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 import com.plateform.multiplayer_platform.Entity.Match;
-
+import com.plateform.multiplayer_platform.Entity.User;
+import com.plateform.multiplayer_platform.Service.MatchQueueService;
 import com.plateform.multiplayer_platform.Service.MatchService;
 
 
@@ -18,9 +19,17 @@ public class MatchController {
     @Autowired
     private MatchService matchService;
 
+    @Autowired 
+    private MatchQueueService matchQueueService;
+
     @PostMapping("/create")
     public ResponseEntity<?> createMatch(@RequestBody Match match) {
         return ResponseEntity.ok(matchService.createMatch(match));
+    }
+
+    @PostMapping("/joinMatch")
+    public ResponseEntity<?> joinMatch(@RequestBody User user) {
+        return ResponseEntity.ok().body(matchQueueService.joinMatch(user.getId()));
     }
 
 }

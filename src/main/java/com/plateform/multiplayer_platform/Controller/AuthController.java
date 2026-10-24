@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.plateform.multiplayer_platform.DTOs.AuthRequest;
 import com.plateform.multiplayer_platform.DTOs.LoginResponse;
 import com.plateform.multiplayer_platform.DTOs.SignUp;
+import com.plateform.multiplayer_platform.DTOs.UserDTO;
 import com.plateform.multiplayer_platform.Entity.User;
 import com.plateform.multiplayer_platform.JWTUtil.JwtUtil;
 import com.plateform.multiplayer_platform.Service.UserService;
@@ -39,8 +40,8 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<User> registerUser(@RequestBody @Valid SignUp signUpRequest)
     {
-        User user = modelMapper.map(signUpRequest,User.class);
-        return ResponseEntity.ok(userService.saveUser(user));
+        UserDTO userDto = modelMapper.map(signUpRequest,UserDTO.class);
+        return ResponseEntity.ok(userService.saveUser(userDto));
     }
 
     @PostMapping("/login")

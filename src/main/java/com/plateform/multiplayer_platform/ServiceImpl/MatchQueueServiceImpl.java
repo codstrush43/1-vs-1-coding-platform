@@ -3,6 +3,7 @@ package com.plateform.multiplayer_platform.ServiceImpl;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.plateform.multiplayer_platform.Entity.Match;
 import com.plateform.multiplayer_platform.Entity.MatchQueue;
@@ -13,6 +14,9 @@ import com.plateform.multiplayer_platform.Repository.MatchRepository;
 import com.plateform.multiplayer_platform.Repository.UserRepository;
 import com.plateform.multiplayer_platform.Service.MatchQueueService;
 
+import jakarta.transaction.Transactional;
+
+@Service 
 public class MatchQueueServiceImpl implements MatchQueueService{
 
     @Autowired 
@@ -27,8 +31,9 @@ public class MatchQueueServiceImpl implements MatchQueueService{
     @Override 
     public MatchQueue joinMatch(long userId)
     {
-        User user = userRepository.findByUserId(userId).
-                                    orElseThrow(()->{throw new RuntimeException("User not found in matchmaking queue"); });
+        try{
+        User user = userRepository.findById(userId).
+                                    orElseThrow(()->new RuntimeException("User not found in matchmaking queue"));
         if(matchQueueRepository.findByUserId(userId).orElse(null) != null)
         {
             throw new RuntimeException("player already in match queue");
@@ -42,9 +47,16 @@ public class MatchQueueServiceImpl implements MatchQueueService{
         findMatch();
 
         return savedQueue;
+        }
+        catch(Exception e)
+        {
+            System.out.println(e.getMessage());
+            return null;
+        }
     }
 
     @Override 
+    @Transactional 
     public void findMatch() {
         List<MatchQueue> players = matchQueueRepository.findFirstTwoPlayers();
 
@@ -63,6 +75,8 @@ public class MatchQueueServiceImpl implements MatchQueueService{
         match.setStatus(MatchStatus.READY);
 
         matchRepository.save(match);
-    }
 
+        matchQueueRepository.delete(firstPlayer);
+        matchQueueRepository.delete(secondPlayer);
+    }
 }

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import com.plateform.multiplayer_platform.Entity.MatchQueue;
 
+
 public interface MatchQueueRepository extends JpaRepository<MatchQueue,Long> {
     Optional<MatchQueue> findByUserId(long userId);
 
