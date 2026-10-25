@@ -14,7 +14,7 @@ import com.plateform.multiplayer_platform.Repository.MatchRepository;
 import com.plateform.multiplayer_platform.Repository.UserRepository;
 import com.plateform.multiplayer_platform.Service.MatchQueueService;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service 
 public class MatchQueueServiceImpl implements MatchQueueService{
@@ -28,12 +28,17 @@ public class MatchQueueServiceImpl implements MatchQueueService{
     @Autowired 
     private MatchRepository matchRepository;
 
+    @Transactional 
     @Override 
     public MatchQueue joinMatch(long userId)
     {
         try{
+
+        matchQueueRepository.lockMatchmaking(); //2 request parallel aavse to 2nd ubho rehse and 1 continue karse..
+
         User user = userRepository.findById(userId).
                                     orElseThrow(()->new RuntimeException("User not found in matchmaking queue"));
+        
         if(matchQueueRepository.findByUserId(userId).orElse(null) != null)
         {
             throw new RuntimeException("player already in match queue");
@@ -51,7 +56,7 @@ public class MatchQueueServiceImpl implements MatchQueueService{
         catch(Exception e)
         {
             System.out.println(e.getMessage());
-            return null;
+            throw e;
         }
     }
 
@@ -74,9 +79,10 @@ public class MatchQueueServiceImpl implements MatchQueueService{
         match.setPlayer2(player2);
         match.setStatus(MatchStatus.READY);
 
-        matchRepository.save(match);
-
+        
         matchQueueRepository.delete(firstPlayer);
         matchQueueRepository.delete(secondPlayer);
+        
+        matchRepository.save(match);
     }
 }
