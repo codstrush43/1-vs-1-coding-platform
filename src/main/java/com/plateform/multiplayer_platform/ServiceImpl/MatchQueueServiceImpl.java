@@ -1,8 +1,10 @@
 package com.plateform.multiplayer_platform.ServiceImpl;
 
+import java.time.Instant;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
 import com.plateform.multiplayer_platform.Entity.Match;
@@ -13,6 +15,7 @@ import com.plateform.multiplayer_platform.Repository.MatchQueueRepository;
 import com.plateform.multiplayer_platform.Repository.MatchRepository;
 import com.plateform.multiplayer_platform.Repository.UserRepository;
 import com.plateform.multiplayer_platform.Service.MatchQueueService;
+import com.plateform.multiplayer_platform.Service.MatchService;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,12 +31,18 @@ public class MatchQueueServiceImpl implements MatchQueueService{
     @Autowired 
     private MatchRepository matchRepository;
 
+    @Autowired 
+    private TaskScheduler matchScheduler;
+
+    @Autowired 
+    private MatchService matchService;
+
     @Transactional 
     @Override 
     public MatchQueue joinMatch(long userId)
     {
         try{
-
+        
         matchQueueRepository.lockMatchmaking(); //2 request parallel aavse to 2nd ubho rehse and 1 continue karse..
 
         User user = userRepository.findById(userId).
@@ -42,6 +51,17 @@ public class MatchQueueServiceImpl implements MatchQueueService{
         if(matchQueueRepository.findByUserId(userId).orElse(null) != null)
         {
             throw new RuntimeException("player already in match queue");
+        }
+
+        boolean alreadyInMatch =
+            matchRepository.countActiveMatches(
+                userId,
+                List.of(MatchStatus.READY, MatchStatus.RUNNING)
+            ) > 0;
+
+        if(alreadyInMatch)
+        {
+            throw new RuntimeException("User is already in the match!");
         }
 
         MatchQueue matchQueue = new MatchQueue();
@@ -84,5 +104,7 @@ public class MatchQueueServiceImpl implements MatchQueueService{
         matchQueueRepository.delete(secondPlayer);
         
         matchRepository.save(match);
+
+        matchScheduler.schedule(()->{matchService.startMatch(match.getId());}, Instant.now().plusSeconds(5));
     }
 }

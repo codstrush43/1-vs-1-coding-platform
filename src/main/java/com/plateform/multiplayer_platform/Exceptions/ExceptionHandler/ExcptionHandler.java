@@ -9,6 +9,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 
 @ControllerAdvice
@@ -28,6 +29,14 @@ public class ExcptionHandler {
     public ResponseEntity<Map<String,String>> handleUsernameNotFoundException(UsernameNotFoundException ex)
     {
         Map<String,String> errors=new HashMap<>();
+        errors.put("error",ex.getMessage());
+        return ResponseEntity.badRequest().body(errors);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String,String>> handleRuntimeException(Exception ex)
+    {
+        Map<String,String> errors= new HashMap<>();
         errors.put("error",ex.getMessage());
         return ResponseEntity.badRequest().body(errors);
     }
