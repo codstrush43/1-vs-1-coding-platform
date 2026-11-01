@@ -1,16 +1,23 @@
 package com.plateform.multiplayer_platform.ServiceImpl;
 
+import java.net.http.WebSocket;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.plateform.multiplayer_platform.DTOs.MatchWebSocketDTO;
 import com.plateform.multiplayer_platform.DTOs.SubmissionRequest;
+import com.plateform.multiplayer_platform.Entity.Match;
 import com.plateform.multiplayer_platform.Entity.Problem;
 import com.plateform.multiplayer_platform.Entity.Submission;
+import com.plateform.multiplayer_platform.Entity.User;
 import com.plateform.multiplayer_platform.Enum.SubmissionStatus;
 import com.plateform.multiplayer_platform.Repository.MatchRepository;
 import com.plateform.multiplayer_platform.Repository.ProblemRepository;
 import com.plateform.multiplayer_platform.Repository.SubmissionRepository;
+import com.plateform.multiplayer_platform.Repository.UserRepository;
 import com.plateform.multiplayer_platform.Service.CodeExecutionService;
+import com.plateform.multiplayer_platform.Service.MatchWebSocketService;
 import com.plateform.multiplayer_platform.Service.SubmissionService;
 
 
@@ -28,20 +35,29 @@ public class SubmissionServiceImpl implements SubmissionService{
     @Autowired 
     private CodeExecutionService codeExecutionService;
 
+    @Autowired 
+    private MatchWebSocketService matchWebSocketService;
+
+    @Autowired 
+    private UserRepository userRepository;
+
     @Override
     public Submission saveSubmission(SubmissionRequest submissionRequest) {
 
-        // Match match = matchRepository.findById(submissionRequest.getMatchId())
-        //         .orElseThrow(() -> new RuntimeException("Match not found with id: " + submissionRequest.getMatchId()));
+        Match match = matchRepository.findById(submissionRequest.getMatchId())
+                .orElseThrow(() -> new RuntimeException("Match not found with id: " + submissionRequest.getMatchId()));
         Problem problem = problemRepository.findById(submissionRequest.getProblemId()).orElseThrow(
             () -> new RuntimeException("Problem not found with id :"+ submissionRequest.getProblemId())
         );
 
+        User user = userRepository.findById(submissionRequest.getUser_id()).orElseThrow(() -> new RuntimeException("user not found with id: " + submissionRequest.getUser_id()));
+
         // SubmissionExecutionResult executionResult = codeExecutionService.execute(problem, submissionRequest.getCode(), submissionRequest.getLanguage());
 
         Submission submission = new Submission();
-        // submission.setMatch(match);
+        submission.setMatch(match);
         submission.setProblem(problem);
+        submission.setUser(user);
         submission.setLanguage(submissionRequest.getLanguage());
         submission.setCode(submissionRequest.getCode());
         submission.setStatus(SubmissionStatus.PENDING);
@@ -55,7 +71,17 @@ public class SubmissionServiceImpl implements SubmissionService{
             try {
                 SubmissionStatus status = codeExecutionService.execute(submission);
                 submission.setStatus(status);
-                return submissionRepository.save(submission);
+                Submission submission2=submissionRepository.save(submission);
+                
+                MatchWebSocketDTO matchWebSocketDTO=new MatchWebSocketDTO();
+                matchWebSocketDTO.setMatch_id(submission.getMatch().getId());
+                matchWebSocketDTO.setPlayer_id(submission.getUser().getId());
+                matchWebSocketDTO.setVerdict(submission.getStatus());
+
+                matchWebSocketService.updateStatus(matchWebSocketDTO);
+
+                return submission2;
+
             } catch (Exception e) {
                 submission.setStatus(SubmissionStatus.INTERNAL_ERROR);
                 return submissionRepository.save(submission);

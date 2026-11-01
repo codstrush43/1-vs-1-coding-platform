@@ -9,6 +9,7 @@ import com.plateform.multiplayer_platform.Entity.Match;
 import com.plateform.multiplayer_platform.Enum.MatchStatus;
 import com.plateform.multiplayer_platform.Repository.MatchRepository;
 import com.plateform.multiplayer_platform.Service.MatchService;
+import com.plateform.multiplayer_platform.Service.MatchWebSocketService;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +19,9 @@ public class MatchServiceImpl implements MatchService {
 
     @Autowired 
     private MatchRepository matchRepository;
+
+    @Autowired
+    private MatchWebSocketService matchWebSocketService;
 
     @Override 
     public Match createMatch(Match match) {
@@ -37,6 +41,8 @@ public class MatchServiceImpl implements MatchService {
         match.setStatus(MatchStatus.RUNNING);
         match.setStartedAt(LocalDateTime.now());
         matchRepository.save(match);
+
+        matchWebSocketService.notifyWithMatchIsRunning(match_id);
 
         return match;
     }

@@ -4,6 +4,8 @@ import java.time.Instant;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
@@ -31,11 +33,15 @@ public class MatchQueueServiceImpl implements MatchQueueService{
     @Autowired 
     private MatchRepository matchRepository;
 
-    @Autowired 
+    @Autowired
+    @Qualifier("getScheduler") 
     private TaskScheduler matchScheduler;
 
     @Autowired 
     private MatchService matchService;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     @Transactional 
     @Override 
@@ -104,6 +110,8 @@ public class MatchQueueServiceImpl implements MatchQueueService{
         matchQueueRepository.delete(secondPlayer);
         
         matchRepository.save(match);
+        
+        messagingTemplate.convertAndSend("/topic/match/" + match.getId(), "MATCH_READY");
 
         matchScheduler.schedule(()->{matchService.startMatch(match.getId());}, Instant.now().plusSeconds(5));
     }

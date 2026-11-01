@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public class SubmissionRequest {
     private Long matchId;
     private Long problemId;
+    private Long user_id;
     private String language;
     private String code;
 }

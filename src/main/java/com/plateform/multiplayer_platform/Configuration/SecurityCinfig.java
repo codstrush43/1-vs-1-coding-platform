@@ -52,7 +52,7 @@ public class SecurityCinfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/**").permitAll()
+            .requestMatchers("/api/**","/**").permitAll()
             .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter,UsernamePasswordAuthenticationFilter.class);
