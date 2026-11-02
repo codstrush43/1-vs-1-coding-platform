@@ -18,6 +18,7 @@ import com.plateform.multiplayer_platform.Repository.SubmissionRepository;
 import com.plateform.multiplayer_platform.Repository.UserRepository;
 import com.plateform.multiplayer_platform.Service.CodeExecutionService;
 import com.plateform.multiplayer_platform.Service.MatchWebSocketService;
+import com.plateform.multiplayer_platform.Service.PlayerScoreService;
 import com.plateform.multiplayer_platform.Service.SubmissionService;
 
 
@@ -40,6 +41,9 @@ public class SubmissionServiceImpl implements SubmissionService{
 
     @Autowired 
     private UserRepository userRepository;
+
+    @Autowired 
+    private PlayerScoreService playerScoreService;
 
     @Override
     public Submission saveSubmission(SubmissionRequest submissionRequest) {
@@ -73,6 +77,11 @@ public class SubmissionServiceImpl implements SubmissionService{
                 submission.setStatus(status);
                 Submission submission2=submissionRepository.save(submission);
                 
+                if(status.equals(SubmissionStatus.ACCEPTED))
+                {
+                    playerScoreService.updatePLayerScore(submission2.getUser().getId(), submission.getMatch().getId());
+                }
+
                 MatchWebSocketDTO matchWebSocketDTO=new MatchWebSocketDTO();
                 matchWebSocketDTO.setMatch_id(submission.getMatch().getId());
                 matchWebSocketDTO.setPlayer_id(submission.getUser().getId());

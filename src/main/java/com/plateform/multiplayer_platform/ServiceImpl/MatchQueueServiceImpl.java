@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.plateform.multiplayer_platform.Entity.Match;
 import com.plateform.multiplayer_platform.Entity.MatchQueue;
+import com.plateform.multiplayer_platform.Entity.PlayerScore;
 import com.plateform.multiplayer_platform.Entity.User;
 import com.plateform.multiplayer_platform.Enum.MatchStatus;
 import com.plateform.multiplayer_platform.Repository.MatchQueueRepository;
@@ -18,6 +19,7 @@ import com.plateform.multiplayer_platform.Repository.MatchRepository;
 import com.plateform.multiplayer_platform.Repository.UserRepository;
 import com.plateform.multiplayer_platform.Service.MatchQueueService;
 import com.plateform.multiplayer_platform.Service.MatchService;
+import com.plateform.multiplayer_platform.Service.PlayerScoreService;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,6 +44,9 @@ public class MatchQueueServiceImpl implements MatchQueueService{
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
+
+    @Autowired 
+    private PlayerScoreService playerScoreService;
 
     @Transactional 
     @Override 
@@ -110,6 +115,19 @@ public class MatchQueueServiceImpl implements MatchQueueService{
         matchQueueRepository.delete(secondPlayer);
         
         matchRepository.save(match);
+
+        PlayerScore playerScore1=new PlayerScore();
+        playerScore1.setMatch(match);
+        playerScore1.setUser(player1);
+        playerScore1.setScore(0);
+
+        PlayerScore playerScore2=new PlayerScore();
+        playerScore2.setMatch(match);
+        playerScore2.setUser(player2);
+        playerScore2.setScore(0);
+
+        playerScoreService.savePlayerScore(playerScore1);
+        playerScoreService.savePlayerScore(playerScore2);
         
         messagingTemplate.convertAndSend("/topic/match/" + match.getId(), "MATCH_READY");
 
