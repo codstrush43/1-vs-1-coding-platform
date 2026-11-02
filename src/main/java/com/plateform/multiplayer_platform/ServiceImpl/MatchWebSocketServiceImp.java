@@ -16,7 +16,7 @@ public class MatchWebSocketServiceImp implements MatchWebSocketService{
 
     @Override 
     public void updateStatus(MatchWebSocketDTO matchWebSocketDTO){
-        messagingTemplate.convertAndSend("/topic/match/"+matchWebSocketDTO.getMatch_id(),+ matchWebSocketDTO.getPlayer_id()+" - "+matchWebSocketDTO.getVerdict());
+        messagingTemplate.convertAndSend("/topic/match/"+matchWebSocketDTO.getMatch_id()+"/code",matchWebSocketDTO.getPlayer_id()+" - "+matchWebSocketDTO.getVerdict());
     }
 
     @Override 
@@ -25,6 +25,15 @@ public class MatchWebSocketServiceImp implements MatchWebSocketService{
         messagingTemplate.convertAndSend(
                 "/topic/match/" + match_id,
                 "MATCH_STARTED"
+        );
+    }
+
+    @Override 
+    public void notifyWithMatchIsCompleted(long match_id)
+    {
+        messagingTemplate.convertAndSend(
+                "/topic/match/" + match_id,
+                "MATCH_COMPLETED"
         );
     }
 

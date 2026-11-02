@@ -122,6 +122,7 @@ public class CodeExecutionServiceImpl implements CodeExecutionService{
             if(compileProcess.exitValue()!=0)
             {
                 String error=new String(compileProcess.getErrorStream().readAllBytes());
+                System.out.println(error);
                 return SubmissionStatus.COMPILATION_ERROR;
             }
         }

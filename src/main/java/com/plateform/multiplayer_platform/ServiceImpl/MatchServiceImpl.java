@@ -1,8 +1,11 @@
 package com.plateform.multiplayer_platform.ServiceImpl;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
 import com.plateform.multiplayer_platform.Entity.Match;
@@ -23,6 +26,10 @@ public class MatchServiceImpl implements MatchService {
     @Autowired
     private MatchWebSocketService matchWebSocketService;
 
+    @Autowired 
+    @Qualifier("getScheduler") 
+    private TaskScheduler matchScheduler;
+
     @Override 
     public Match createMatch(Match match) {
         match.setStatus(MatchStatus.WAITING);
@@ -41,9 +48,30 @@ public class MatchServiceImpl implements MatchService {
         match.setStatus(MatchStatus.RUNNING);
         match.setStartedAt(LocalDateTime.now());
         matchRepository.save(match);
+        
+        matchScheduler.schedule(()->{stopMatch(match_id);}, Instant.now().plusSeconds(60));
 
         matchWebSocketService.notifyWithMatchIsRunning(match_id);
 
+        return match;
+    }
+
+    @Transactional 
+    @Override 
+    public Match stopMatch(long match_id)
+    {
+        Match match = matchRepository.findById(match_id).orElseThrow(()->new RuntimeException("match not found when we can try to stop it"));
+
+        if(match.getStatus()==MatchStatus.COMPLETED)
+        {
+            return match;
+        }
+
+        match.setStatus(MatchStatus.COMPLETED);
+        match.setEndedAt(LocalDateTime.now());
+        matchRepository.save(match);
+
+        matchWebSocketService.notifyWithMatchIsCompleted(match_id);
         return match;
     }
 

@@ -5,4 +5,5 @@ import com.plateform.multiplayer_platform.Entity.Match;
 public interface MatchService {
     public Match createMatch(Match match);
     public Match startMatch(long match_id);
+    public Match stopMatch(long match_id);
 }

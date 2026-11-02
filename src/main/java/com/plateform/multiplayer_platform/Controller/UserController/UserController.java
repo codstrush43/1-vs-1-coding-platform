@@ -22,7 +22,7 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/save")
-    public ResponseEntity<?> postMethodName(@RequestBody UserDTO userDto) {
+    public ResponseEntity<?> saveUser(@RequestBody UserDTO userDto) {
         
         return ResponseEntity.ok().body(userService.saveUser(userDto));
     }
