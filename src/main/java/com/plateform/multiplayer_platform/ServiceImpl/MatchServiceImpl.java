@@ -40,7 +40,7 @@ public class MatchServiceImpl implements MatchService {
     @Override 
     public Match startMatch(long match_id)
     {
-        Match match = matchRepository.findById(match_id).orElseThrow(()->new RuntimeException("match not found when we can try to stating it"));
+        Match match = findMatchById(match_id);
         if (match.getStatus() != MatchStatus.READY) {
             return match;
         }
@@ -60,7 +60,7 @@ public class MatchServiceImpl implements MatchService {
     @Override 
     public Match stopMatch(long match_id)
     {
-        Match match = matchRepository.findById(match_id).orElseThrow(()->new RuntimeException("match not found when we can try to stop it"));
+        Match match = findMatchById(match_id);
 
         if(match.getStatus()==MatchStatus.COMPLETED)
         {
@@ -73,6 +73,11 @@ public class MatchServiceImpl implements MatchService {
 
         matchWebSocketService.notifyWithMatchIsCompleted(match_id);
         return match;
+    }
+
+    public Match findMatchById(long match_id)
+    {
+        return matchRepository.findById(match_id).orElseThrow(()->new RuntimeException("match not found in match service"));
     }
 
 }

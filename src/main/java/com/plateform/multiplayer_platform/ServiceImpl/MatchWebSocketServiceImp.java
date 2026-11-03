@@ -2,7 +2,6 @@ package com.plateform.multiplayer_platform.ServiceImpl;
 
 import java.util.List;
 
-import javax.management.RuntimeErrorException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -41,21 +40,7 @@ public class MatchWebSocketServiceImp implements MatchWebSocketService{
     public void notifyWithMatchIsCompleted(long match_id)
     {
 
-        List<PlayerScore> playerScores = playerScoreService.findByMatchId(match_id); 
-
-        String resulet="Draw";
-
-        if(playerScores != null && playerScores.size() == 2)
-        {
-            if(playerScores.get(0).getScore() > playerScores.get(1).getScore())
-            {
-                resulet="Winner : "+playerScores.get(0).getUser().getId();
-            }
-            else if(playerScores.get(0).getScore() < playerScores.get(1).getScore())
-            {
-                resulet="Winner : "+playerScores.get(1).getUser().getId();
-            }
-        }
+        String resulet=playerScoreService.getWinnerStatus(match_id);
 
         messagingTemplate.convertAndSend(
                 "/topic/match/" + match_id,

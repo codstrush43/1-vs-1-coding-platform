@@ -6,4 +6,5 @@ import com.plateform.multiplayer_platform.Entity.Problem;
 public interface ProblemService {
     public Problem addProblem(ProblemDto problemDto);
     public Problem findById(Long problemId);
+    
 }

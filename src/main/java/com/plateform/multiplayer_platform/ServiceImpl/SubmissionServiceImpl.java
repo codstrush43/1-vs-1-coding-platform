@@ -1,7 +1,5 @@
 package com.plateform.multiplayer_platform.ServiceImpl;
 
-import java.net.http.WebSocket;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +15,7 @@ import com.plateform.multiplayer_platform.Repository.ProblemRepository;
 import com.plateform.multiplayer_platform.Repository.SubmissionRepository;
 import com.plateform.multiplayer_platform.Repository.UserRepository;
 import com.plateform.multiplayer_platform.Service.CodeExecutionService;
+import com.plateform.multiplayer_platform.Service.MatchProblemScoreService;
 import com.plateform.multiplayer_platform.Service.MatchWebSocketService;
 import com.plateform.multiplayer_platform.Service.PlayerScoreService;
 import com.plateform.multiplayer_platform.Service.SubmissionService;
@@ -44,6 +43,9 @@ public class SubmissionServiceImpl implements SubmissionService{
 
     @Autowired 
     private PlayerScoreService playerScoreService;
+
+    @Autowired 
+    private MatchProblemScoreService matchProblemScoreService;
 
     @Override
     public Submission saveSubmission(SubmissionRequest submissionRequest) {
@@ -79,7 +81,16 @@ public class SubmissionServiceImpl implements SubmissionService{
                 
                 if(status.equals(SubmissionStatus.ACCEPTED))
                 {
-                    playerScoreService.updatePLayerScore(submission2.getUser().getId(), submission.getMatch().getId());
+                    long user_id=submission2.getUser().getId();
+                    long match_id=submission2.getMatch().getId();
+                    long problem_id=submission2.getProblem().getId();
+                    boolean isRepeate = matchProblemScoreService.checkAlreadyUpdated(user_id, match_id, problem_id);
+
+                    if(!isRepeate)
+                    {
+                        matchProblemScoreService.updateMatchProblemScore(user_id, match_id, problem_id);
+                        playerScoreService.updatePLayerScore(user_id, match_id, problem_id);
+                    }
                 }
 
                 MatchWebSocketDTO matchWebSocketDTO=new MatchWebSocketDTO();

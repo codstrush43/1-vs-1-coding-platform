@@ -30,4 +30,10 @@ public class UserServiceImpl implements UserService {
         return userRepository.save(user);
     }
 
+    @Override 
+    public User findUserById(Long user_id)
+    {
+        return userRepository.findById(user_id).orElseThrow(()->{throw new RuntimeException("user not found in user service!");});
+    }
+
 }

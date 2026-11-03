@@ -6,4 +6,5 @@ public interface MatchService {
     public Match createMatch(Match match);
     public Match startMatch(long match_id);
     public Match stopMatch(long match_id);
+    public Match findMatchById(long match_id);
 }

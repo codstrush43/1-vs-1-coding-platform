@@ -1,5 +1,6 @@
 package com.plateform.multiplayer_platform.ServiceImpl;
 
+import com.plateform.multiplayer_platform.ServiceImpl.MatchProblemScoreServiceImpl;
 import java.time.Instant;
 import java.util.List;
 
@@ -10,16 +11,20 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
 import com.plateform.multiplayer_platform.Entity.Match;
+import com.plateform.multiplayer_platform.Entity.MatchProblemScore;
 import com.plateform.multiplayer_platform.Entity.MatchQueue;
 import com.plateform.multiplayer_platform.Entity.PlayerScore;
+import com.plateform.multiplayer_platform.Entity.Problem;
 import com.plateform.multiplayer_platform.Entity.User;
 import com.plateform.multiplayer_platform.Enum.MatchStatus;
 import com.plateform.multiplayer_platform.Repository.MatchQueueRepository;
 import com.plateform.multiplayer_platform.Repository.MatchRepository;
 import com.plateform.multiplayer_platform.Repository.UserRepository;
+import com.plateform.multiplayer_platform.Service.MatchProblemScoreService;
 import com.plateform.multiplayer_platform.Service.MatchQueueService;
 import com.plateform.multiplayer_platform.Service.MatchService;
 import com.plateform.multiplayer_platform.Service.PlayerScoreService;
+import com.plateform.multiplayer_platform.Service.ProblemService;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +52,12 @@ public class MatchQueueServiceImpl implements MatchQueueService{
 
     @Autowired 
     private PlayerScoreService playerScoreService;
+
+    @Autowired 
+    private MatchProblemScoreService matchProblemScoreService;
+
+    @Autowired 
+    private ProblemService problemService;
 
     @Transactional 
     @Override 
@@ -128,6 +139,11 @@ public class MatchQueueServiceImpl implements MatchQueueService{
 
         playerScoreService.savePlayerScore(playerScore1);
         playerScoreService.savePlayerScore(playerScore2);
+
+        Problem problem=problemService.findById(1L);
+        
+        matchProblemScoreService.createMatchProblemScore(player1.getId(),match.getId(),problem.getId());
+        matchProblemScoreService.createMatchProblemScore(player2.getId(),match.getId(),problem.getId());
         
         messagingTemplate.convertAndSend("/topic/match/" + match.getId(), "MATCH_READY");
 

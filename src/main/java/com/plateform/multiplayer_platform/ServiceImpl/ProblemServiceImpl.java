@@ -3,6 +3,7 @@ package com.plateform.multiplayer_platform.ServiceImpl;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.plateform.multiplayer_platform.DTOs.ProblemDto;
 import com.plateform.multiplayer_platform.Entity.Problem;
@@ -10,6 +11,7 @@ import com.plateform.multiplayer_platform.Repository.ProblemRepository;
 import com.plateform.multiplayer_platform.Service.ProblemService;
 
 @Service
+@Transactional 
 public class ProblemServiceImpl implements ProblemService {
 
     @Autowired

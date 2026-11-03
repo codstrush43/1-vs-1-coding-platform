@@ -8,5 +8,5 @@ import com.plateform.multiplayer_platform.Entity.User;
 public interface UserService {
 
     public User saveUser(UserDTO userDto);
-
+    User findUserById(Long user_id);
 }
