@@ -12,6 +12,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -46,4 +47,9 @@ public class Submission {
     @ManyToOne
     @JoinColumn(name = "match_id")
     private Match match;
+
+    @PrePersist
+    protected void onCreate() {
+        submittedAt = LocalDateTime.now();
+    }
 }

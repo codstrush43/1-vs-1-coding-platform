@@ -8,12 +8,4 @@ import org.springframework.stereotype.Controller;
 
 @Controller 
 public class MatchWebSocketController {
-
-    @Autowired 
-    private SimpMessagingTemplate messagingTemplate;
-
-    @MessageMapping("/match/{matchId}")
-    public void notifyMatchReady(@DestinationVariable Long matchId) {
-    messagingTemplate.convertAndSend("/topic/match/" + matchId,"MATCH_READY");
-}
 }

@@ -7,4 +7,6 @@ import com.plateform.multiplayer_platform.Entity.composite_key.MatchProblemScore
 
 public interface MatchProblemScoreRepository extends JpaRepository<MatchProblemScore,MatchProblemScoreId>{
 
+    boolean existsByUser_IdAndMatch_IdAndProblem_Id(long user_id,long match_id,long problem_id);
+
 }

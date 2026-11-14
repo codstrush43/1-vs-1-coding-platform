@@ -3,13 +3,17 @@ package com.plateform.multiplayer_platform.JWTUtil;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import javax.crypto.SecretKey;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Jwts; 
 import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtUtil {
-    private String secretKey = "SECRET_KEY_1234567890@1234567890";
+
+    @Value("${jwt.secret}")
+    private String secretKey;
 
     private SecretKey getKey() {
         return Keys.hmacShaKeyFor(

@@ -2,7 +2,6 @@ package com.plateform.multiplayer_platform.ServiceImpl;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.parsing.ProblemReporter;
 import org.springframework.stereotype.Service;
 
 import com.plateform.multiplayer_platform.Entity.MatchProblemScore;
@@ -12,9 +11,7 @@ import com.plateform.multiplayer_platform.Repository.MatchRepository;
 import com.plateform.multiplayer_platform.Repository.ProblemRepository;
 import com.plateform.multiplayer_platform.Repository.UserRepository;
 import com.plateform.multiplayer_platform.Service.MatchProblemScoreService;
-import com.plateform.multiplayer_platform.Service.MatchService;
-import com.plateform.multiplayer_platform.Service.ProblemService;
-import com.plateform.multiplayer_platform.Service.UserService;
+import com.plateform.multiplayer_platform.Service.PlayerScoreService;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,19 +31,11 @@ public class MatchProblemScoreServiceImpl implements MatchProblemScoreService{
     @Autowired 
     private ProblemRepository problemRepository;
 
-    @Override
-    public boolean checkAlreadyUpdated(long user_id, long match_id, long problem_id) {
-
-        MatchProblemScore matchProblemScore=findById(user_id,match_id,problem_id);
-
-        if(matchProblemScore.getPointsAwarded()>0)
-            return true;
-        
-        return false;
-    }
+    @Autowired 
+    private PlayerScoreService playerScoreService;
 
     @Override
-    public void createMatchProblemScore(long user_id, long match_id, long problem_id) {
+    public MatchProblemScore createMatchProblemScore(long user_id, long match_id, long problem_id) {
 
         MatchProblemScore matchProblemScore = new MatchProblemScore();
 
@@ -55,17 +44,25 @@ public class MatchProblemScoreServiceImpl implements MatchProblemScoreService{
         matchProblemScore.setProblem(problemRepository.findById(problem_id).orElseThrow(()->{throw new RuntimeException("problem not found in matchproblemScore!");}));
         matchProblemScore.setPointsAwarded(0);
         
-        matchProblemScoreRepository.save(matchProblemScore);
+       return matchProblemScoreRepository.save(matchProblemScore);
         
     }
 
     @Override
     public void updateMatchProblemScore(long user_id, long match_id, long problem_id) {
-        MatchProblemScore matchProblemScore=findById(user_id,match_id,problem_id);
+        userRepository.findByIdWithLock(user_id)
+        .orElseThrow(() -> new RuntimeException("User not found!"));
 
-        matchProblemScore.setPointsAwarded(100+matchProblemScore.getPointsAwarded());
+        boolean exist=existsByUser_IdAndMatch_IdAndProblem_Id(user_id,match_id,problem_id);
+        if(!exist)
+        {
+            MatchProblemScore matchProblemScore;
+           matchProblemScore=createMatchProblemScore(user_id,match_id,problem_id);
+           matchProblemScore.setPointsAwarded(100+matchProblemScore.getPointsAwarded());
 
-        matchProblemScoreRepository.save(matchProblemScore);
+           matchProblemScoreRepository.save(matchProblemScore);
+            playerScoreService.updatePLayerScore(user_id, match_id, problem_id);
+        }
     }
 
     @Override 
@@ -74,7 +71,14 @@ public class MatchProblemScoreServiceImpl implements MatchProblemScoreService{
         MatchProblemScoreId matchProblemScoreId = new MatchProblemScoreId(user_id,match_id,problem_id);
 
         return matchProblemScoreRepository.findById(matchProblemScoreId)
-                                        .orElseThrow(()->{throw new RuntimeException("match problem score not found while updating it!");});
+                                        .orElse(null);
+    }
+
+
+    @Override 
+    public boolean existsByUser_IdAndMatch_IdAndProblem_Id(long user_id, long match_id, long problem_id)
+    {
+        return matchProblemScoreRepository.existsByUser_IdAndMatch_IdAndProblem_Id(user_id,match_id,problem_id);
     }
 
 }

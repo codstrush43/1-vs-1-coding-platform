@@ -2,14 +2,17 @@ package com.plateform.multiplayer_platform.ServiceImpl;
 
 import java.util.List;
 
+import javax.management.RuntimeErrorException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.plateform.multiplayer_platform.Entity.MatchProblemScore;
 import com.plateform.multiplayer_platform.Entity.PlayerScore;
+import com.plateform.multiplayer_platform.Entity.composite_key.MatchProblemScoreId;
 import com.plateform.multiplayer_platform.Entity.composite_key.PlayerScoreId;
+import com.plateform.multiplayer_platform.Repository.MatchProblemScoreRepository;
 import com.plateform.multiplayer_platform.Repository.PlayerScoreRepository;
-import com.plateform.multiplayer_platform.Service.MatchProblemScoreService;
 import com.plateform.multiplayer_platform.Service.PlayerScoreService;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +25,7 @@ public class PlayerScoreServiceImpl implements PlayerScoreService{
     private PlayerScoreRepository playerScoreRepository;
 
     @Autowired 
-    private MatchProblemScoreService matchProblemScoreService;
+    private MatchProblemScoreRepository matchProblemScoreRepository;
 
     @Override
     public void savePlayerScore(PlayerScore playerScore) {
@@ -34,7 +37,8 @@ public class PlayerScoreServiceImpl implements PlayerScoreService{
     @Override
     public void updatePLayerScore(long user_id,long match_id,long problem_id) {
         PlayerScoreId playerScoreId = new PlayerScoreId(user_id,match_id);
-        MatchProblemScore matchProblemScore = matchProblemScoreService.findById(user_id, match_id, problem_id);
+        MatchProblemScoreId matchProblemScoreId = new MatchProblemScoreId(user_id,match_id,problem_id);
+        MatchProblemScore matchProblemScore = matchProblemScoreRepository.findById(matchProblemScoreId).orElseThrow(()->{throw new RuntimeException("matchProblemScore not found in problemscore service");});
 
         PlayerScore playerScore =playerScoreRepository.findById(playerScoreId)
                                     .orElseThrow(()->new RuntimeException("PlayerScore not found while updating the score!"));

@@ -4,6 +4,7 @@ import java.util.List;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +35,11 @@ public class MatchWebSocketServiceImp implements MatchWebSocketService{
                 "/topic/match/" + match_id,
                 "MATCH_STARTED"
         );
+    }
+
+    @Override 
+    public void notifyMatchReady(long matchId) {
+    messagingTemplate.convertAndSend("/topic/match/" + matchId,"MATCH_READY");
     }
 
     @Override 
