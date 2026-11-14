@@ -2,6 +2,8 @@ package com.plateform.multiplayer_platform.Entity;
 
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Version;
+
 import com.plateform.multiplayer_platform.Enum.MatchStatus;
 
 import jakarta.persistence.Entity;
@@ -45,7 +47,13 @@ public class Match {
 
     private LocalDateTime startedAt;
 
+    private LocalDateTime endsAt;
+
     private LocalDateTime endedAt;
+
+    @Version
+    private Long version;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

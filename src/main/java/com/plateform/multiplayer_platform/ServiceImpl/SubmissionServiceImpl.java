@@ -70,10 +70,16 @@ public class SubmissionServiceImpl implements SubmissionService{
 
         @Override
         public Submission execute(Submission submission) {
+            Submission submission2;
+             SubmissionStatus status;
             try {
-                SubmissionStatus status = codeExecutionService.execute(submission);
+                status = codeExecutionService.execute(submission);
                 submission.setStatus(status);
-                Submission submission2=submissionRepository.save(submission);
+                submission2=submissionRepository.save(submission);
+                } catch (Exception e) {
+                submission.setStatus(SubmissionStatus.INTERNAL_ERROR);
+                return submissionRepository.save(submission);
+            }
                 
                 if(SubmissionStatus.ACCEPTED.equals(status))
                 {
@@ -92,10 +98,5 @@ public class SubmissionServiceImpl implements SubmissionService{
                 matchWebSocketService.updateStatus(matchWebSocketDTO);
 
                 return submission2;
-
-            } catch (Exception e) {
-                submission.setStatus(SubmissionStatus.INTERNAL_ERROR);
-                return submissionRepository.save(submission);
-            }
         }
 }
